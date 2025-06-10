@@ -1,10 +1,5 @@
-import pandas as pd
-import numpy as np
-import yfinance as yf
-import matplotlib.pyplot as plt
 from backtesting import Backtest, Strategy
-from backtesting.lib import crossover
-from backtesting.test import SMA
+import pandas as pd
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -13,7 +8,7 @@ class SMAOptTechAnalysis:
         self.Strategy = Strategy
 
     def sma_params_n_tf_opt(self, set_type, data, n1, n2):
-        bt = Backtest(data, Strategy, cash=10000000, commission=0.002)
+        bt = Backtest(data, self.Strategy, cash=10000000, commission=0.002)
         stats, heatmap = bt.optimize(
             n1=n1,
             n2=n2,
@@ -36,5 +31,6 @@ class SMAOptTechAnalysis:
         for set_type, df in all_data.items():
             if "train" in set_type:
                 train_results.append(self.sma_params_n_tf_opt(set_type, df, n1, n2))
-
+        optimal_tf_df = pd.DataFrame(train_results)
+        return optimal_tf_df.sort_values(by='Return [%]', ascending=False)
 
