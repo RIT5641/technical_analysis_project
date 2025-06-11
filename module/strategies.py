@@ -1,5 +1,5 @@
-
-from backtesting import Backtest, Strategy
+import pandas as pd
+from backtesting import Strategy
 from backtesting.lib import crossover
 from backtesting.test import SMA
 import warnings
@@ -18,5 +18,22 @@ class SmaCross(Strategy):
         elif crossover(self.sma2, self.sma1):
             self.position.close()
 
-class strategy_2(Strategy):
-    pass
+class BollingerBandsStrategy(Strategy):
+    n = 20  # lookback para SMA y desviación
+    n_std = 2  # desviaciones estándar
+
+    def init(self):
+        self.sma = self.I(SMA, self.data.Close, self.n)
+        self.std = self.I(lambda x: pd.Series(x).rolling(self.n).std().to_numpy(), self.data.Close)
+
+    def next(self):
+        price = self.data.Close[-1]
+        upper = self.sma[-1] + self.n_std * self.std[-1]
+        lower = self.sma[-1] - self.n_std * self.std[-1]
+
+        if price < lower and not self.position.is_long:
+            self.buy()
+        elif price > upper and not self.position.is_short:
+            self.sell()
+        elif lower <= price <= upper:
+            self.position.close()
