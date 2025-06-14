@@ -2,7 +2,6 @@ from backtesting import Backtest
 import pandas as pd
 import warnings
 warnings.filterwarnings('ignore')
-
 class SMAOptTechAnalysis:
     def __init__(self, Strategy):
         self.Strategy = Strategy
@@ -16,7 +15,6 @@ class SMAOptTechAnalysis:
             maximize='Return [%]',  # Se pueden usar metricas de rendimiento de stats
             return_heatmap=True
         )
-
         best_params = heatmap.sort_values(ascending=False)
         best_results = {'interval': set_type,
                         'n1': best_params.index[0][0],
@@ -33,7 +31,6 @@ class SMAOptTechAnalysis:
                 train_results.append(self.sma_params_n_tf_opt(set_type, df, n1, n2))
         optimal_tf_df = pd.DataFrame(train_results)
         return optimal_tf_df.sort_values(by='Return [%]', ascending=False)
-
 
 class BB_Opt:
     def __init__(self, Strategy):
@@ -65,3 +62,47 @@ class BB_Opt:
                 train_results.append(self.bb_params_opt(set_type, df, n_range, std_range))
         optimal_tf_df = pd.DataFrame(train_results)
         return optimal_tf_df.sort_values(by='Return [%]', ascending=False)
+
+class RSI_Opt:
+    def __init__(self, Strategy):
+        self.Strategy = Strategy
+
+    def rsi_params_n_tf_opt(self, set_type, data, period_range, overbought_range, oversold_range):
+        bt = Backtest(data, self.Strategy, cash=10000000, commission=0.002)
+        stats, heatmap = bt.optimize(
+            period=period_range,
+            overbought=overbought_range,
+            oversold=oversold_range,
+            constraint=lambda p: p.oversold < p.overbought,  # Regla lógica
+            maximize='Return [%]',
+            return_heatmap=True
+        )
+
+        if heatmap.empty:
+            return {
+                'interval': set_type,
+                'period': None,
+                'overbought': None,
+                'oversold': None,
+                'Return [%]': None,
+                'No. Trades': None
+            }
+
+        best_params = heatmap.sort_values(ascending=False)
+        best_results = {
+            'interval': set_type,
+            'period': best_params.index[0][0],
+            'overbought': best_params.index[0][1],
+            'oversold': best_params.index[0][2],
+            'Return [%]': best_params.iloc[0],
+            'No. Trades': stats['# Trades']
+        }
+        return best_results
+
+    def rsi_strategy_opt(self, all_data, period_range, overbought_range, oversold_range):
+        train_results = []
+        for set_type, df in all_data.items():
+            if "train" in set_type:
+                train_results.append(self.rsi_params_n_tf_opt(set_type, df, period_range, overbought_range, oversold_range))
+        optimal_tf_df = pd.DataFrame(train_results)
+        return optimal_tf_df.dropna(subset=['Return [%]']).sort_values(by='Return [%]', ascending=False)
