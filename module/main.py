@@ -8,8 +8,10 @@ warnings.filterwarnings("ignore")
 
 # Se separan los datos en train y test
 tts = TrainTestSets()
-ticker = input('Enter ticker symbol: ')
+ticker = 'AAPL'
 intervals = ["1m", "2m", "5m", "15m", "30m", "1h", "4h", "1d"]
+#intervals = ["1h", "4h", "1d", "5d", "1wk"]
+
 data = tts.interval_train_test_split(ticker, intervals)
 
 results_summary = []
@@ -61,7 +63,7 @@ bb_stats = bt.run(n=int(bb_best['n']), n_std=float(bb_best['n_std']))
 results_summary.append({'Strategy': 'Bollinger Bands', 'Return [%]': bb_stats['Return [%]'], 'Trades': bb_stats['# Trades']})
 bt.plot()
 
-# 4. RSI Strategy
+# RSI Strategy
 rsi_opt = RSI_Opt(RSIStrategy)
 
 # Se optimizan primero los parámetros del RSI
