@@ -9,8 +9,8 @@ warnings.filterwarnings("ignore")
 # Se separan los datos en train y test
 tts = TrainTestSets()
 ticker = 'AAPL'
-intervals = ["1m", "2m", "5m", "15m", "30m", "1h", "4h", "1d"]
-#intervals = ["1h", "4h", "1d", "5d", "1wk"]
+#intervals = ["1m", "2m", "5m", "15m", "30m", "1h", "4h", "1d", "5d", "1wk"]
+intervals = ["1h", "4h", "1d", "5d", "1wk"]
 
 data = tts.interval_train_test_split(ticker, intervals)
 
@@ -93,7 +93,28 @@ bt.plot()
 # Comparación final
 import pandas as pd
 comparison_df = pd.DataFrame(results_summary)
-print("\n🔍 Comparativa Final entre Estrategias:\n")
-print(comparison_df.sort_values(by='Return [%]', ascending=False))
+# Detectar estrategia con mayor retorno
+best_strategy = comparison_df.sort_values(by='Return [%]', ascending=False).iloc[0]['Strategy']
+
+print("Tabla comparativa entre estrategias: ")
+print(comparison_df)
+
+print("\nMejor estrategia encontrada:")
+
+if best_strategy == "RSI":
+    print("Estrategia: RSI")
+    print(f"Parámetros óptimos: period = {int(rsi_best['period'])}, overbought = {float(rsi_best['overbought'])}, oversold = {float(rsi_best['oversold'])}")
+    print(f"Intervalo óptimo: {rsi_best['interval'].replace('_train', '')}")
+
+elif best_strategy == "SMA Cross":
+    print("Estrategia: Cruce de Medias Móviles (SMA)")
+    print(f"Parámetros óptimos: n1 = {int(sma_best['n1'])}, n2 = {int(sma_best['n2'])}")
+    print(f"Intervalo óptimo: {sma_best['interval'].replace('_train', '')}")
+
+elif best_strategy == "Bollinger Bands":
+    print("Estrategia: Bandas de Bollinger")
+    print(f"Parámetros óptimos: n = {int(bb_best['n'])}, n_std = {float(bb_best['n_std'])}")
+    print(f"Intervalo óptimo: {bb_best['interval'].replace('_train', '')}")
+
 
 
